@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import TextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
 import Button from "./button";
 
 type CollectionFormValues = {
@@ -10,6 +11,8 @@ type CollectionFormValues = {
 type CollectionFormProps = {
   onAddCollection: (collection: { title: string; creator: string }) => void;
 };
+
+const MOBILE_WIDTH = "900px";
 
 const removeQuotes = (value: string) => {
   return value.replace(/["'«»„“”‘’]/g, "");
@@ -58,17 +61,32 @@ export default function CollectionForm({
       color: "var(--color-text)",
       opacity: 0.6,
     },
+
+    [`@media (max-width:${MOBILE_WIDTH})`]: {
+      flex: "none",
+      width: "100%",
+    },
   };
 
   return (
-    <form
+    <Box
+      component="form"
       className="collection-form"
       onSubmit={handleSubmit(onSubmit)}
-      style={{ marginBottom: "24px" }}
+      sx={{
+        marginBottom: "24px",
+        [`@media (max-width:${MOBILE_WIDTH})`]: {
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+        },
+      }}
     >
       <TextField
+        fullWidth
         {...register("creator", {
           required: "Автор обязателен",
+
           maxLength: {
             value: 100,
             message: "Максимум 100 символов",
@@ -89,6 +107,7 @@ export default function CollectionForm({
       />
 
       <TextField
+        fullWidth
         {...register("title", {
           required: "Название обязательно",
           maxLength: {
@@ -113,6 +132,6 @@ export default function CollectionForm({
       <Button type="submit" disabled={!isDirty || !isValid}>
         Добавить книгу
       </Button>
-    </form>
+    </Box>
   );
 }

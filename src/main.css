@@ -70,3 +70,9 @@ select {
   display: flex;
   gap: 16px;
 }
+
+@media (max-width: 900px) {
+  .collection-form {
+    flex-direction: column;
+  }
+}

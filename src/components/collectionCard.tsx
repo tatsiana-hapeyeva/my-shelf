@@ -28,6 +28,9 @@ export default function CollectionCard({
         borderRadius: "8px",
         background: "none",
         textAlign: "left",
+        whiteSpace: "normal",
+        overflowWrap: "anywhere",
+        wordBreak: "break-all",
       }}
     >
       <Box
@@ -37,6 +40,9 @@ export default function CollectionCard({
           fontSize: "24px",
           lineHeight: 1.2,
           color: "var(--color-text)",
+          whiteSpace: "normal",
+          overflowWrap: "anywhere",
+          wordBreak: "break-all",
         }}
       >
         {item.title}
@@ -48,6 +54,9 @@ export default function CollectionCard({
           display: "block",
           mt: 1,
           color: "var(--color-extra)",
+          whiteSpace: "normal",
+          overflowWrap: "anywhere",
+          wordBreak: "break-all",
         }}
       >
         {item.creator}

@@ -27,6 +27,7 @@ export default function CollectionPopup({
       open={open}
       onClose={onClose}
       aria-label={ariaLabel}
+      fullWidth
       slotProps={{
         paper: {
           sx: {
@@ -37,6 +38,7 @@ export default function CollectionPopup({
             width: "100%",
             maxWidth: "560px",
             p: 2,
+            overflow: "hidden",
           },
         },
       }}
@@ -46,6 +48,8 @@ export default function CollectionPopup({
           display: "flex",
           flexDirection: "column",
           gap: "16px",
+          overflowWrap: "break-word",
+          wordBreak: "break-all",
         }}
       >
         <Box>{children}</Box>

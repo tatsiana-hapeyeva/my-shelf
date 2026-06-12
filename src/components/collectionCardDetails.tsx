@@ -58,11 +58,16 @@ export default function CollectionCardDetails({
           display: "flex",
           flexDirection: "column",
           gap: 2,
+          minWidth: 0,
+          overflow: "hidden",
         }}
       >
         <Typography
           sx={{
             overflowWrap: "anywhere",
+            whiteSpace: "normal",
+            minWidth: 0,
+            maxWidth: "100%",
           }}
         >
           {item.title}
@@ -70,6 +75,9 @@ export default function CollectionCardDetails({
         <Typography
           sx={{
             overflowWrap: "anywhere",
+            whiteSpace: "normal",
+            minWidth: 0,
+            maxWidth: "100%",
           }}
         >
           {item.creator}
@@ -98,6 +106,9 @@ export default function CollectionCardDetails({
         <Typography
           sx={{
             overflowWrap: "anywhere",
+            whiteSpace: "normal",
+            minWidth: 0,
+            maxWidth: "100%",
           }}
         >
           {item.impressions ? item.impressions : "Добавьте впечатления"}

@@ -3,9 +3,9 @@ import { useForm, Controller } from "react-hook-form";
 
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import { Typography } from "@mui/material";
-import { Checkbox } from "@mui/material";
-import { FormControlLabel } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import Chip from "@mui/material/Chip";
 
 export type CollectionCardData = {
@@ -21,21 +21,33 @@ type CollectionCardDetailsProps = {
   item: CollectionCardData;
   isEditing: boolean;
   onSubmit: (data: CollectionCardData) => void;
+  onValidityChange?: (isValid: boolean) => void;
 };
 
 export default function CollectionCardDetails({
   item,
   isEditing,
   onSubmit,
+  onValidityChange,
 }: CollectionCardDetailsProps) {
-  const { register, control, handleSubmit, reset } =
-    useForm<CollectionCardData>({
-      defaultValues: item,
-    });
+  const {
+    register,
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<CollectionCardData>({
+    defaultValues: item,
+    mode: "onChange",
+  });
 
   useEffect(() => {
     reset(item);
   }, [item, reset]);
+
+  useEffect(() => {
+    onValidityChange?.(isValid);
+  }, [isValid, onValidityChange]);
 
   const [tagInput, setTagInput] = useState("");
 
@@ -48,8 +60,21 @@ export default function CollectionCardDetails({
           gap: 2,
         }}
       >
-        <Typography>{item.title}</Typography>
-        <Typography>{item.creator}</Typography>
+        <Typography
+          sx={{
+            overflowWrap: "anywhere",
+          }}
+        >
+          {item.title}
+        </Typography>
+        <Typography
+          sx={{
+            overflowWrap: "anywhere",
+          }}
+        >
+          {item.creator}
+        </Typography>
+
         {item.tags?.length ? (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {item.tags.map((tag) => (
@@ -69,9 +94,15 @@ export default function CollectionCardDetails({
         ) : (
           <Typography>Добавьте теги</Typography>
         )}
-        <Typography>
+
+        <Typography
+          sx={{
+            overflowWrap: "anywhere",
+          }}
+        >
           {item.impressions ? item.impressions : "Добавьте впечатления"}
         </Typography>
+
         <Typography>{item.isRead ? "Прочитана" : "Не прочитана"}</Typography>
       </Box>
     );
@@ -106,16 +137,33 @@ export default function CollectionCardDetails({
       }}
     >
       <TextField
-        {...register("title")}
+        {...register("title", {
+          maxLength: {
+            value: 100,
+            message: "Максимум 100 символов",
+          },
+        })}
+        label="Название"
         placeholder="Название"
         fullWidth
         size="small"
+        error={!!errors.title}
+        helperText={errors.title?.message}
       />
+
       <TextField
-        {...register("creator")}
+        {...register("creator", {
+          maxLength: {
+            value: 100,
+            message: "Максимум 100 символов",
+          },
+        })}
+        label="Автор"
         placeholder="Автор"
         fullWidth
         size="small"
+        error={!!errors.creator}
+        helperText={errors.creator?.message}
       />
 
       <Controller
@@ -151,6 +199,7 @@ export default function CollectionCardDetails({
               ))}
 
               <TextField
+                label="Теги"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 placeholder="Добавьте теги"
@@ -164,6 +213,7 @@ export default function CollectionCardDetails({
                 }}
                 slotProps={{
                   htmlInput: {
+                    maxLength: 30,
                     onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -185,10 +235,18 @@ export default function CollectionCardDetails({
       />
 
       <TextField
-        {...register("impressions")}
+        {...register("impressions", {
+          maxLength: {
+            value: 2000,
+            message: "Максимум 2000 символов",
+          },
+        })}
+        label="Впечатления"
         placeholder="Добавьте впечатления"
         multiline
         rows={4}
+        error={!!errors.impressions}
+        helperText={errors.impressions?.message}
       />
 
       <Controller

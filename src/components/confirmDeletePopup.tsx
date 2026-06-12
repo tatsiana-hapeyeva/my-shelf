@@ -17,6 +17,8 @@ export default function ConfirmDeletePopup({
     <Dialog
       open={open}
       onClose={onClose}
+      aria-label="Подтверждение удаления книги"
+      aria-describedby="confirm-delete-description"
       slotProps={{
         paper: {
           sx: {

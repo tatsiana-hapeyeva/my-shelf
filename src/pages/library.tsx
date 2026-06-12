@@ -90,6 +90,10 @@ export function Library() {
       return;
     }
 
+    if (!isCardFormValid) {
+      return;
+    }
+
     const form = document.getElementById(
       "collection-card-form",
     ) as HTMLFormElement | null;
@@ -97,10 +101,12 @@ export function Library() {
     form?.requestSubmit();
   };
 
+  const [isCardFormValid, setIsCardFormValid] = useState(true);
+
   return (
     <>
       <Header />
-      <div className="counter__container">
+      <main className="counter__container">
         <CollectionForm onAddCollection={handleAddItem} />
 
         <CollectionList items={items} onOpenCard={handleOpenItemPopup} />
@@ -114,12 +120,14 @@ export function Library() {
             handleOpenDeletePopup(selectedItem.id);
           }}
           editButtonText={isEditing ? "Сохранить" : "Редактировать"}
+          ariaLabel={isEditing ? "Редактирование книги" : "Просмотр книги"}
         >
           {selectedItem && (
             <CollectionCardDetails
               item={selectedItem}
               isEditing={isEditing}
               onSubmit={handleSubmitItem}
+              onValidityChange={setIsCardFormValid}
             />
           )}
         </CollectionPopup>
@@ -129,7 +137,7 @@ export function Library() {
           onClose={handleCloseDeletePopup}
           onConfirm={handleConfirmDelete}
         />
-      </div>
+      </main>
     </>
   );
 }

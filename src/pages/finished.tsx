@@ -4,7 +4,9 @@ export function Finished() {
   return (
     <>
       <Header />
-      <div className="counter__container">Прочитанное</div>
+      <main>
+        <div className="counter__container">Прочитанное</div>
+      </main>
     </>
   );
 }

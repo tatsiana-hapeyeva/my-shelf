@@ -10,6 +10,7 @@ type CollectionPopupProps = {
   onEdit: () => void;
   onDelete: () => void;
   editButtonText: string;
+  ariaLabel: string;
 };
 
 export default function CollectionPopup({
@@ -19,11 +20,13 @@ export default function CollectionPopup({
   onEdit,
   onDelete,
   editButtonText,
+  ariaLabel,
 }: CollectionPopupProps) {
   return (
     <Dialog
       open={open}
       onClose={onClose}
+      aria-label={ariaLabel}
       slotProps={{
         paper: {
           sx: {

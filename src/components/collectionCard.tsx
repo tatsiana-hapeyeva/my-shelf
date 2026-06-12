@@ -17,15 +17,21 @@ export default function CollectionCard({
 }: CollectionCardProps) {
   return (
     <Box
+      component="button"
+      type="button"
       onClick={() => onOpenCard(item.id)}
       sx={{
+        display: "block",
+        width: "100%",
         p: 2,
         border: "1px solid var(--color-extra)",
         borderRadius: "8px",
-        cursor: "pointer",
+        background: "none",
+        textAlign: "left",
       }}
     >
       <Box
+        component="span"
         sx={{
           display: "block",
           fontSize: "24px",
@@ -37,6 +43,7 @@ export default function CollectionCard({
       </Box>
 
       <Box
+        component="span"
         sx={{
           display: "block",
           mt: 1,

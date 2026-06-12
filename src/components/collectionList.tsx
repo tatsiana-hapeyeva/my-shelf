@@ -16,14 +16,20 @@ export default function CollectionList({
 
   return (
     <Box
+      component="ul"
       sx={{
         display: "flex",
         flexDirection: "column",
         gap: "16px",
+        listStyle: "none",
+        margin: 0,
+        padding: 0,
       }}
     >
       {items.map((item) => (
-        <CollectionCard key={item.id} item={item} onOpenCard={onOpenCard} />
+        <Box component="li" key={item.id}>
+          <CollectionCard item={item} onOpenCard={onOpenCard} />
+        </Box>
       ))}
     </Box>
   );

@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import TextField from "@mui/material/TextField";
 import Button from "./button";
+
+type CollectionFormValues = {
+  title: string;
+  creator: string;
+};
 
 type CollectionFormProps = {
   onAddCollection: (collection: { title: string; creator: string }) => void;
@@ -13,14 +18,22 @@ const removeQuotes = (value: string) => {
 export default function CollectionForm({
   onAddCollection,
 }: CollectionFormProps) {
-  const [creator, setCreator] = useState("");
-  const [title, setTitle] = useState("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid, isDirty },
+  } = useForm<CollectionFormValues>({
+    defaultValues: {
+      title: "",
+      creator: "",
+    },
+    mode: "onChange",
+  });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const cleanCreator = creator.trim();
-    const cleanTitle = removeQuotes(title).trim();
+  const onSubmit = (data: CollectionFormValues) => {
+    const cleanCreator = data.creator.trim();
+    const cleanTitle = removeQuotes(data.title).trim();
 
     if (!cleanCreator || !cleanTitle) return;
 
@@ -29,11 +42,8 @@ export default function CollectionForm({
       title: cleanTitle,
     });
 
-    setCreator("");
-    setTitle("");
+    reset();
   };
-
-  const isDisabled = !creator.trim() || !title.trim();
 
   const fieldStyles = {
     flex: 1,
@@ -53,26 +63,54 @@ export default function CollectionForm({
   return (
     <form
       className="collection-form"
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       style={{ marginBottom: "24px" }}
     >
       <TextField
-        value={creator}
-        onChange={(e) => setCreator(e.target.value)}
+        {...register("creator", {
+          required: "Автор обязателен",
+          maxLength: {
+            value: 100,
+            message: "Максимум 100 символов",
+          },
+          validate: (value) =>
+            value.trim() !== "" || "Поле не должно быть пустым",
+        })}
+        slotProps={{
+          htmlInput: {
+            "aria-label": "Автор",
+          },
+        }}
         size="small"
         placeholder="Введите автора"
         sx={fieldStyles}
+        error={!!errors.creator}
+        helperText={errors.creator?.message}
       />
 
       <TextField
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        {...register("title", {
+          required: "Название обязательно",
+          maxLength: {
+            value: 100,
+            message: "Максимум 100 символов",
+          },
+          validate: (value) =>
+            removeQuotes(value).trim() !== "" || "Поле не должно быть пустым",
+        })}
+        slotProps={{
+          htmlInput: {
+            "aria-label": "Название",
+          },
+        }}
         size="small"
         placeholder="Введите название"
         sx={fieldStyles}
+        error={!!errors.title}
+        helperText={errors.title?.message}
       />
 
-      <Button type="submit" disabled={isDisabled}>
+      <Button type="submit" disabled={!isDirty || !isValid}>
         Добавить книгу
       </Button>
     </form>

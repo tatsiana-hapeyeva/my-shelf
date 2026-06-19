@@ -8,7 +8,7 @@ import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Chip from "@mui/material/Chip";
 
-export type CollectionCardData = {
+export type ItemCardData = {
   id: string;
   title: string;
   creator: string;
@@ -17,26 +17,41 @@ export type CollectionCardData = {
   impressions?: string;
 };
 
-type CollectionCardDetailsProps = {
-  item: CollectionCardData;
+type ItemCardDetailedProps = {
+  item: ItemCardData;
   isEditing: boolean;
-  onSubmit: (data: CollectionCardData) => void;
+  onSubmit: (data: ItemCardData) => void;
   onValidityChange?: (isValid: boolean) => void;
 };
 
-export default function CollectionCardDetails({
+const textSx = {
+  overflowWrap: "anywhere",
+  whiteSpace: "normal",
+  minWidth: 0,
+  maxWidth: "100%",
+};
+
+const chipSx = {
+  backgroundColor: "var(--color-accent)",
+  color: "var(--color-text-add)",
+  "& .MuiChip-deleteIcon": {
+    color: "var(--color-text-add)",
+  },
+};
+
+export default function ItemCardDetailed({
   item,
   isEditing,
   onSubmit,
   onValidityChange,
-}: CollectionCardDetailsProps) {
+}: ItemCardDetailedProps) {
   const {
     register,
     control,
     handleSubmit,
     reset,
     formState: { errors, isValid },
-  } = useForm<CollectionCardData>({
+  } = useForm<ItemCardData>({
     defaultValues: item,
     mode: "onChange",
   });
@@ -62,55 +77,20 @@ export default function CollectionCardDetails({
           overflow: "hidden",
         }}
       >
-        <Typography
-          sx={{
-            overflowWrap: "anywhere",
-            whiteSpace: "normal",
-            minWidth: 0,
-            maxWidth: "100%",
-          }}
-        >
-          {item.title}
-        </Typography>
-        <Typography
-          sx={{
-            overflowWrap: "anywhere",
-            whiteSpace: "normal",
-            minWidth: 0,
-            maxWidth: "100%",
-          }}
-        >
-          {item.creator}
-        </Typography>
+        <Typography sx={textSx}>{item.title}</Typography>
+        <Typography sx={textSx}>{item.creator}</Typography>
 
         {item.tags?.length ? (
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             {item.tags.map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                sx={{
-                  backgroundColor: "var(--color-accent)",
-                  color: "var(--color-text-add)",
-                  "& .MuiChip-deleteIcon": {
-                    color: "var(--color-text-add)",
-                  },
-                }}
-              />
+              <Chip key={tag} label={tag} sx={chipSx} />
             ))}
           </Box>
         ) : (
           <Typography>Добавьте теги</Typography>
         )}
 
-        <Typography
-          sx={{
-            overflowWrap: "anywhere",
-            whiteSpace: "normal",
-            minWidth: 0,
-            maxWidth: "100%",
-          }}
-        >
+        <Typography sx={textSx}>
           {item.impressions ? item.impressions : "Добавьте впечатления"}
         </Typography>
 
@@ -199,13 +179,7 @@ export default function CollectionCardDetails({
                   onDelete={() =>
                     field.onChange(tags.filter((item) => item !== tag))
                   }
-                  sx={{
-                    backgroundColor: "var(--color-accent)",
-                    color: "var(--color-text-add)",
-                    "& .MuiChip-deleteIcon": {
-                      color: "var(--color-text-add)",
-                    },
-                  }}
+                  sx={chipSx}
                 />
               ))}
 

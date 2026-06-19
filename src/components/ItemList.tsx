@@ -1,15 +1,12 @@
 import Box from "@mui/material/Box";
-import CollectionCard, { type CollectionCardData } from "./collectionCard";
+import ItemCard, { type ItemCardData } from "./ItemCard";
 
-type CollectionListProps = {
-  items: CollectionCardData[];
+type ItemListProps = {
+  items: ItemCardData[];
   onOpenCard: (itemId: string) => void;
 };
 
-export default function CollectionList({
-  items,
-  onOpenCard,
-}: CollectionListProps) {
+export default function ItemList({ items, onOpenCard }: ItemListProps) {
   if (items.length === 0) {
     return <Box>Здесь пока пусто. Добавь первый элемент коллекции.</Box>;
   }
@@ -28,7 +25,7 @@ export default function CollectionList({
     >
       {items.map((item) => (
         <Box component="li" key={item.id}>
-          <CollectionCard item={item} onOpenCard={onOpenCard} />
+          <ItemCard item={item} onOpenCard={onOpenCard} />
         </Box>
       ))}
     </Box>

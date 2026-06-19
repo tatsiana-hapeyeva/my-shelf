@@ -1,21 +1,24 @@
 import { useState } from "react";
-import { Header } from "../components/header";
-import CollectionForm from "../components/collectionForm";
-import CollectionList from "../components/collectionList";
-import CollectionPopup from "../components/collectionPopup";
-import CollectionCardDetails, {
-  type CollectionCardData,
-} from "../components/collectionCardDetails";
+import { Header } from "../components/Header";
+import AddCardForm from "../components/AddCardForm ";
+import ItemList from "../components/ItemList";
+import Popup from "../components/Popup";
+import ItemCardDetails, {
+  type ItemCardData,
+} from "../components/ItemCardDetailed";
 import { useLocalStorage } from "../hooks/useLocalStorage";
-import ConfirmDeletePopup from "../components/confirmDeletePopup";
+import ConfirmDeletePopup from "../components/DeleteConfirmationPopup";
+import { useSearchByList } from "../hooks/useSearchByList";
 
 export function Library() {
-  const [items, setItems] = useLocalStorage<CollectionCardData[]>("items", []);
+  const [items, setItems] = useLocalStorage<ItemCardData[]>("items", []);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [searchValue, setSearchValue] = useState("");
 
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
+  const filteredItems = useSearchByList(items, searchValue);
 
   const handleAddItem = ({
     title,
@@ -47,7 +50,7 @@ export function Library() {
     setIsEditing(false);
   };
 
-  const handleSubmitItem = (data: CollectionCardData) => {
+  const handleSubmitItem = (data: ItemCardData) => {
     const normalizedTags = (data.tags ?? []).flatMap((tag) =>
       tag
         .split(",")
@@ -105,13 +108,11 @@ export function Library() {
 
   return (
     <>
-      <Header />
+      <Header searchValue={searchValue} setSearchValue={setSearchValue} />
       <main className="counter__container">
-        <CollectionForm onAddCollection={handleAddItem} />
-
-        <CollectionList items={items} onOpenCard={handleOpenItemPopup} />
-
-        <CollectionPopup
+        <AddCardForm onAddCard={handleAddItem} />
+        <ItemList items={filteredItems} onOpenCard={handleOpenItemPopup} />
+        <Popup
           open={Boolean(selectedItem)}
           onClose={handleCloseItemPopup}
           onEdit={handleEditAction}
@@ -123,15 +124,14 @@ export function Library() {
           ariaLabel={isEditing ? "Редактирование книги" : "Просмотр книги"}
         >
           {selectedItem && (
-            <CollectionCardDetails
+            <ItemCardDetails
               item={selectedItem}
               isEditing={isEditing}
               onSubmit={handleSubmitItem}
               onValidityChange={setIsCardFormValid}
             />
           )}
-        </CollectionPopup>
-
+        </Popup>
         <ConfirmDeletePopup
           open={Boolean(deleteTargetId)}
           onClose={handleCloseDeletePopup}

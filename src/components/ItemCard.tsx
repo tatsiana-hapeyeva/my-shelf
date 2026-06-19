@@ -1,20 +1,17 @@
 import Box from "@mui/material/Box";
 
-export type CollectionCardData = {
+export type ItemCardData = {
   id: string;
   title: string;
   creator: string;
 };
 
-type CollectionCardProps = {
-  item: CollectionCardData;
+type ItemCardProps = {
+  item: ItemCardData;
   onOpenCard: (itemId: string) => void;
 };
 
-export default function CollectionCard({
-  item,
-  onOpenCard,
-}: CollectionCardProps) {
+export default function ItemCard({ item, onOpenCard }: ItemCardProps) {
   return (
     <Box
       component="button"

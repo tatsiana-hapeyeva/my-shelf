@@ -1,24 +1,33 @@
 import Dialog from "@mui/material/Dialog";
 import Box from "@mui/material/Box";
-import Button from "./button";
+import type { ReactNode } from "react";
+import Button from "./Button";
 
-type ConfirmDeletePopupProps = {
+type PopupProps = {
   open: boolean;
+  children: ReactNode;
   onClose: () => void;
-  onConfirm: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  editButtonText: string;
+  ariaLabel: string;
 };
 
-export default function ConfirmDeletePopup({
+export default function Popup({
   open,
+  children,
   onClose,
-  onConfirm,
-}: ConfirmDeletePopupProps) {
+  onEdit,
+  onDelete,
+  editButtonText,
+  ariaLabel,
+}: PopupProps) {
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      aria-label="Подтверждение удаления книги"
-      aria-describedby="confirm-delete-description"
+      aria-label={ariaLabel}
+      fullWidth
       slotProps={{
         paper: {
           sx: {
@@ -27,8 +36,9 @@ export default function ConfirmDeletePopup({
             border: "1px solid var(--color-extra)",
             borderRadius: "12px",
             width: "100%",
-            maxWidth: "320px",
+            maxWidth: "560px",
             p: 2,
+            overflow: "hidden",
           },
         },
       }}
@@ -38,9 +48,11 @@ export default function ConfirmDeletePopup({
           display: "flex",
           flexDirection: "column",
           gap: "16px",
+          overflowWrap: "break-word",
+          wordBreak: "break-all",
         }}
       >
-        <Box>Это действие нельзя отменить.</Box>
+        <Box>{children}</Box>
 
         <Box
           sx={{
@@ -49,11 +61,11 @@ export default function ConfirmDeletePopup({
             gap: "16px",
           }}
         >
-          <Button type="button" buttonVariant="outlined" onClick={onClose}>
-            Отмена
+          <Button type="button" onClick={onEdit}>
+            {editButtonText}
           </Button>
 
-          <Button type="button" onClick={onConfirm}>
+          <Button type="button" variant="outlined" onClick={onDelete}>
             Удалить
           </Button>
         </Box>

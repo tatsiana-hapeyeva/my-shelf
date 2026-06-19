@@ -1,32 +1,50 @@
 import { useForm } from "react-hook-form";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
-import Button from "./button";
+import Button from "./Button";
 
-type CollectionFormValues = {
+type AddCardFormData = {
   title: string;
   creator: string;
 };
 
-type CollectionFormProps = {
-  onAddCollection: (collection: { title: string; creator: string }) => void;
+type AddCardFormProps = {
+  onAddCard: (card: AddCardFormData) => void;
 };
 
 const MOBILE_WIDTH = "900px";
+
+const fieldStyles = {
+  flex: 1,
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "var(--color-bg)",
+    color: "var(--color-text)",
+  },
+  "& .MuiInputBase-input": {
+    color: "var(--color-text)",
+  },
+  "& .MuiInputBase-input::placeholder": {
+    color: "var(--color-text)",
+    opacity: 0.6,
+  },
+
+  [`@media (max-width:${MOBILE_WIDTH})`]: {
+    flex: "none",
+    width: "100%",
+  },
+};
 
 const removeQuotes = (value: string) => {
   return value.replace(/["'«»„“”‘’]/g, "");
 };
 
-export default function CollectionForm({
-  onAddCollection,
-}: CollectionFormProps) {
+export default function AddCardForm({ onAddCard }: AddCardFormProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isValid, isDirty },
-  } = useForm<CollectionFormValues>({
+  } = useForm<AddCardFormData>({
     defaultValues: {
       title: "",
       creator: "",
@@ -34,38 +52,18 @@ export default function CollectionForm({
     mode: "onChange",
   });
 
-  const onSubmit = (data: CollectionFormValues) => {
+  const onSubmit = (data: AddCardFormData) => {
     const cleanCreator = data.creator.trim();
     const cleanTitle = removeQuotes(data.title).trim();
 
     if (!cleanCreator || !cleanTitle) return;
 
-    onAddCollection({
+    onAddCard({
       creator: cleanCreator,
       title: cleanTitle,
     });
 
     reset();
-  };
-
-  const fieldStyles = {
-    flex: 1,
-    "& .MuiOutlinedInput-root": {
-      backgroundColor: "var(--color-bg)",
-      color: "var(--color-text)",
-    },
-    "& .MuiInputBase-input": {
-      color: "var(--color-text)",
-    },
-    "& .MuiInputBase-input::placeholder": {
-      color: "var(--color-text)",
-      opacity: 0.6,
-    },
-
-    [`@media (max-width:${MOBILE_WIDTH})`]: {
-      flex: "none",
-      width: "100%",
-    },
   };
 
   return (

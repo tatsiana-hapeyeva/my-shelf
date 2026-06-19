@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 import Box from "@mui/material/Box";
-import { Header } from "../components/header";
-import { Counter } from "../components/counter";
-import Button from "../components/button";
+import { Header } from "../components/Header";
+import { Counter } from "../components/Counter";
+import Button from "../components/Button";
 
 export function Hero() {
   return (

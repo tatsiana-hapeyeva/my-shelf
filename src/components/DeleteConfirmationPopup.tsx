@@ -1,33 +1,24 @@
 import Dialog from "@mui/material/Dialog";
 import Box from "@mui/material/Box";
-import type { ReactNode } from "react";
-import Button from "./button";
+import Button from "./Button";
 
-type CollectionPopupProps = {
+type ConfirmDeletePopupProps = {
   open: boolean;
-  children: ReactNode;
   onClose: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  editButtonText: string;
-  ariaLabel: string;
+  onConfirm: () => void;
 };
 
-export default function CollectionPopup({
+export default function ConfirmDeletePopup({
   open,
-  children,
   onClose,
-  onEdit,
-  onDelete,
-  editButtonText,
-  ariaLabel,
-}: CollectionPopupProps) {
+  onConfirm,
+}: ConfirmDeletePopupProps) {
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      aria-label={ariaLabel}
-      fullWidth
+      aria-label="Подтверждение удаления книги"
+      aria-describedby="confirm-delete-description"
       slotProps={{
         paper: {
           sx: {
@@ -36,9 +27,8 @@ export default function CollectionPopup({
             border: "1px solid var(--color-extra)",
             borderRadius: "12px",
             width: "100%",
-            maxWidth: "560px",
+            maxWidth: "320px",
             p: 2,
-            overflow: "hidden",
           },
         },
       }}
@@ -48,11 +38,9 @@ export default function CollectionPopup({
           display: "flex",
           flexDirection: "column",
           gap: "16px",
-          overflowWrap: "break-word",
-          wordBreak: "break-all",
         }}
       >
-        <Box>{children}</Box>
+        <Box>Это действие нельзя отменить.</Box>
 
         <Box
           sx={{
@@ -61,11 +49,11 @@ export default function CollectionPopup({
             gap: "16px",
           }}
         >
-          <Button type="button" onClick={onEdit}>
-            {editButtonText}
+          <Button type="button" variant="outlined" onClick={onClose}>
+            Отмена
           </Button>
 
-          <Button type="button" buttonVariant="outlined" onClick={onDelete}>
+          <Button type="button" onClick={onConfirm}>
             Удалить
           </Button>
         </Box>

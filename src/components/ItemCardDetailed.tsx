@@ -8,14 +8,7 @@ import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Chip from "@mui/material/Chip";
 
-export type ItemCardData = {
-  id: string;
-  title: string;
-  creator: string;
-  tags?: string[];
-  isRead: boolean;
-  impressions?: string;
-};
+import { type ItemCardData } from "../types";
 
 type ItemCardDetailedProps = {
   item: ItemCardData;

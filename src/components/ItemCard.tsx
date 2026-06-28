@@ -1,14 +1,10 @@
-import Box from "@mui/material/Box";
+import type { ItemCardData } from "../types";
 
-export type ItemCardData = {
-  id: string;
-  title: string;
-  creator: string;
-};
+import Box from "@mui/material/Box";
 
 type ItemCardProps = {
   item: ItemCardData;
-  onOpenCard: (itemId: string) => void;
+  onOpenCard?: (itemId: string) => void;
 };
 
 export default function ItemCard({ item, onOpenCard }: ItemCardProps) {
@@ -16,7 +12,7 @@ export default function ItemCard({ item, onOpenCard }: ItemCardProps) {
     <Box
       component="button"
       type="button"
-      onClick={() => onOpenCard(item.id)}
+      onClick={() => onOpenCard?.(item.id)}
       sx={{
         display: "block",
         width: "100%",
@@ -25,9 +21,19 @@ export default function ItemCard({ item, onOpenCard }: ItemCardProps) {
         borderRadius: "8px",
         background: "none",
         textAlign: "left",
+        cursor: "pointer",
         whiteSpace: "normal",
         overflowWrap: "anywhere",
         wordBreak: "break-all",
+        transition: "background-color 0.2s, border-color 0.2s",
+        "&:hover": {
+          borderColor: "var(--color-text)",
+          backgroundColor: "color-mix(in srgb, var(--color-bg) 92%, white 8%)",
+        },
+        "&:focus-visible": {
+          outline: "2px solid var(--color-text)",
+          outlineOffset: "2px",
+        },
       }}
     >
       <Box
@@ -37,9 +43,6 @@ export default function ItemCard({ item, onOpenCard }: ItemCardProps) {
           fontSize: "24px",
           lineHeight: 1.2,
           color: "var(--color-text)",
-          whiteSpace: "normal",
-          overflowWrap: "anywhere",
-          wordBreak: "break-all",
         }}
       >
         {item.title}
@@ -51,9 +54,6 @@ export default function ItemCard({ item, onOpenCard }: ItemCardProps) {
           display: "block",
           mt: 1,
           color: "var(--color-extra)",
-          whiteSpace: "normal",
-          overflowWrap: "anywhere",
-          wordBreak: "break-all",
         }}
       >
         {item.creator}

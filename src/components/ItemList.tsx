@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
-import ItemCard, { type ItemCardData } from "./ItemCard";
+import ItemCard from "./ItemCard";
+import { type ItemCardData } from "../types";
 
 type ItemListProps = {
   items: ItemCardData[];

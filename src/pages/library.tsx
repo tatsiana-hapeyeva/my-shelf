@@ -3,22 +3,43 @@ import { Header } from "../components/Header";
 import AddCardForm from "../components/AddCardForm ";
 import ItemList from "../components/ItemList";
 import Popup from "../components/Popup";
-import ItemCardDetails, {
-  type ItemCardData,
-} from "../components/ItemCardDetailed";
+import ItemCardDetails from "../components/ItemCardDetailed";
+import { type ItemCardData } from "../types";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import ConfirmDeletePopup from "../components/DeleteConfirmationPopup";
-import { useSearchByList } from "../hooks/useSearchByList";
+import { useFilteredItems } from "../hooks/useFilteredItems";
+import ReadUnreadFilter from "../components/ReadUnreadFilter";
+import type { StatusFilter } from "../components/ReadUnreadFilter";
+import FilterPanel from "../components/FilterPanel";
+import { Box } from "@mui/material";
 
 export function Library() {
   const [items, setItems] = useLocalStorage<ItemCardData[]>("items", []);
+
+  const [searchValue, setSearchValue] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
-  const [searchValue, setSearchValue] = useState("");
+
+  const [isCardFormValid, setIsCardFormValid] = useState(true);
+
+  const searchedItems = useFilteredItems(items, searchValue);
+
+  const finalFilteredItems = searchedItems.filter((item) => {
+    if (statusFilter === "read" && !item.isRead) return false;
+    if (statusFilter === "unread" && item.isRead) return false;
+    if (selectedTags.length > 0) {
+      if (!item.tags || item.tags.length === 0) return false;
+      const hasMatch = item.tags.some((tag) => selectedTags.includes(tag));
+      if (!hasMatch) return false;
+    }
+    return true;
+  });
 
   const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
-  const filteredItems = useSearchByList(items, searchValue);
 
   const handleAddItem = ({
     title,
@@ -38,16 +59,6 @@ export function Library() {
         impressions: "",
       },
     ]);
-  };
-
-  const handleOpenItemPopup = (itemId: string) => {
-    setSelectedItemId(itemId);
-    setIsEditing(false);
-  };
-
-  const handleCloseItemPopup = () => {
-    setSelectedItemId(null);
-    setIsEditing(false);
   };
 
   const handleSubmitItem = (data: ItemCardData) => {
@@ -72,6 +83,16 @@ export function Library() {
     handleCloseItemPopup();
   };
 
+  const handleOpenItemPopup = (itemId: string) => {
+    setSelectedItemId(itemId);
+    setIsEditing(false);
+  };
+
+  const handleCloseItemPopup = () => {
+    setSelectedItemId(null);
+    setIsEditing(false);
+  };
+
   const handleOpenDeletePopup = (itemId: string) => {
     setDeleteTargetId(itemId);
   };
@@ -82,7 +103,6 @@ export function Library() {
 
   const handleConfirmDelete = () => {
     if (!deleteTargetId) return;
-
     handleDeleteItem(deleteTargetId);
     setDeleteTargetId(null);
   };
@@ -93,9 +113,7 @@ export function Library() {
       return;
     }
 
-    if (!isCardFormValid) {
-      return;
-    }
+    if (!isCardFormValid) return;
 
     const form = document.getElementById(
       "collection-card-form",
@@ -104,14 +122,35 @@ export function Library() {
     form?.requestSubmit();
   };
 
-  const [isCardFormValid, setIsCardFormValid] = useState(true);
-
   return (
     <>
       <Header searchValue={searchValue} setSearchValue={setSearchValue} />
+
       <main className="counter__container">
         <AddCardForm onAddCard={handleAddItem} />
-        <ItemList items={filteredItems} onOpenCard={handleOpenItemPopup} />
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: "16px",
+            marginBottom: "24px",
+            alignItems: "center",
+          }}
+        >
+          <FilterPanel
+            items={items}
+            selectedTags={selectedTags}
+            onSelectedTagsChange={setSelectedTags}
+          />
+
+          <ReadUnreadFilter
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+          />
+        </Box>
+
+        <ItemList items={finalFilteredItems} onOpenCard={handleOpenItemPopup} />
+
         <Popup
           open={Boolean(selectedItem)}
           onClose={handleCloseItemPopup}
@@ -132,6 +171,7 @@ export function Library() {
             />
           )}
         </Popup>
+
         <ConfirmDeletePopup
           open={Boolean(deleteTargetId)}
           onClose={handleCloseDeletePopup}

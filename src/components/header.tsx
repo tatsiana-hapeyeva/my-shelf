@@ -8,8 +8,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import SearchForm from "./SearchForm";
 
 type HeaderProps = {
-  searchValue: string;
-  setSearchValue: React.Dispatch<React.SetStateAction<string>>;
+  searchValue?: string;
+  setSearchValue?: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const MOBILE_WIDTH = "900px";
@@ -73,7 +73,12 @@ export function Header({ searchValue, setSearchValue }: HeaderProps) {
           },
         }}
       >
-        <SearchForm searchValue={searchValue} setSearchValue={setSearchValue} />
+        {searchValue !== undefined && setSearchValue !== undefined ? (
+          <SearchForm
+            searchValue={searchValue}
+            setSearchValue={setSearchValue}
+          />
+        ) : null}
       </Box>
 
       <Box
@@ -127,10 +132,12 @@ export function Header({ searchValue, setSearchValue }: HeaderProps) {
             width: "100%",
           }}
         >
-          <SearchForm
-            searchValue={searchValue}
-            setSearchValue={setSearchValue}
-          />
+          {searchValue !== undefined && setSearchValue !== undefined ? (
+            <SearchForm
+              searchValue={searchValue}
+              setSearchValue={setSearchValue}
+            />
+          ) : null}
         </Box>
       </Box>
     </Box>

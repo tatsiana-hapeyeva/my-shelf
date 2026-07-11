@@ -2,22 +2,28 @@ import Dialog from "@mui/material/Dialog";
 import Box from "@mui/material/Box";
 import Button from "./Button";
 
-type ConfirmDeletePopupProps = {
+type ConfirmPopupProps = {
   open: boolean;
+  message: string;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
+  confirmButtonText?: string;
+  cancelButtonText?: string;
 };
 
-export default function ConfirmDeletePopup({
+export default function ConfirmPopup({
   open,
+  message,
   onClose,
   onConfirm,
-}: ConfirmDeletePopupProps) {
+  confirmButtonText = "Удалить",
+  cancelButtonText = "Отмена",
+}: ConfirmPopupProps) {
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      aria-label="Подтверждение удаления книги"
+      aria-label="Подтверждение действия"
       aria-describedby="confirm-delete-description"
       slotProps={{
         paper: {
@@ -40,7 +46,7 @@ export default function ConfirmDeletePopup({
           gap: "16px",
         }}
       >
-        <Box>Это действие нельзя отменить.</Box>
+        <Box>{message}</Box>
 
         <Box
           sx={{
@@ -50,12 +56,14 @@ export default function ConfirmDeletePopup({
           }}
         >
           <Button type="button" variant="outlined" onClick={onClose}>
-            Отмена
+            {cancelButtonText}
           </Button>
 
-          <Button type="button" onClick={onConfirm}>
-            Удалить
-          </Button>
+          {onConfirm && (
+            <Button type="button" onClick={onConfirm}>
+              {confirmButtonText}
+            </Button>
+          )}
         </Box>
       </Box>
     </Dialog>

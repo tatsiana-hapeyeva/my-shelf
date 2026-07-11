@@ -10,11 +10,16 @@ import SearchForm from "./SearchForm";
 type HeaderProps = {
   searchValue?: string;
   setSearchValue?: React.Dispatch<React.SetStateAction<string>>;
+  searchPlaceholder?: string;
 };
 
 const MOBILE_WIDTH = "900px";
 
-export function Header({ searchValue, setSearchValue }: HeaderProps) {
+export function Header({
+  searchValue,
+  setSearchValue,
+  searchPlaceholder,
+}: HeaderProps) {
   const [mobileSection, setMobileSection] = useState<"menu" | "search" | null>(
     null,
   );
@@ -77,6 +82,7 @@ export function Header({ searchValue, setSearchValue }: HeaderProps) {
           <SearchForm
             searchValue={searchValue}
             setSearchValue={setSearchValue}
+            placeholder={searchPlaceholder}
           />
         ) : null}
       </Box>
@@ -136,6 +142,7 @@ export function Header({ searchValue, setSearchValue }: HeaderProps) {
             <SearchForm
               searchValue={searchValue}
               setSearchValue={setSearchValue}
+              placeholder={searchPlaceholder}
             />
           ) : null}
         </Box>

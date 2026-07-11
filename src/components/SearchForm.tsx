@@ -3,11 +3,13 @@ import TextField from "@mui/material/TextField";
 type SearchFormProps = {
   searchValue: string;
   setSearchValue: React.Dispatch<React.SetStateAction<string>>;
+  placeholder?: string;
 };
 
 export default function SearchForm({
   searchValue,
   setSearchValue,
+  placeholder,
 }: SearchFormProps) {
   return (
     <form>
@@ -15,7 +17,7 @@ export default function SearchForm({
         fullWidth
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
-        placeholder="Найти книгу по названию, автору или тегу"
+        placeholder={placeholder}
         size="small"
         sx={{
           "& .MuiOutlinedInput-root": {

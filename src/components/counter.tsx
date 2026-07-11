@@ -1,6 +1,5 @@
 import "../main.css";
 import type { ItemCardData } from "../types";
-import { useLocalStorage } from "../hooks/useLocalStorage";
 
 function getPluralForm(
   count: number,
@@ -8,21 +7,22 @@ function getPluralForm(
   few: string,
   many: string,
 ): string {
-  const lastTwoDigits = count % 100;
-  const lastDigit = count % 10;
+  const lastTwo = count % 100;
+  const lastOne = count % 10;
 
-  if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return many;
-  if (lastDigit === 1) return one;
-  if (lastDigit >= 2 && lastDigit <= 4) return few;
+  if (lastTwo >= 11 && lastTwo <= 19) return many;
+  if (lastOne === 1) return one;
+  if (lastOne >= 2 && lastOne <= 4) return few;
   return many;
 }
 
-export function Counter() {
-  const [items] = useLocalStorage<ItemCardData[]>("items", []);
-  const currentItems = items ?? [];
+type CounterProps = {
+  items: ItemCardData[];
+};
 
-  const total = currentItems.length;
-  const completed = currentItems.filter((item) => item.isRead).length;
+export function Counter({ items }: CounterProps) {
+  const total = items.length;
+  const completed = items.filter((item) => item.isRead).length;
 
   return (
     <ul className="counter__container">

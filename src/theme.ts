@@ -86,6 +86,10 @@ const theme = createTheme({
         paper: {
           boxShadow: "none",
           backgroundImage: "none",
+          backgroundColor: "var(--color-bg)",
+          color: "var(--color-text)",
+          border: "1px solid var(--color-extra)",
+          borderRadius: "8px",
         },
       },
     },

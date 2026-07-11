@@ -1,45 +1,78 @@
 import { useState } from "react";
+import { Box } from "@mui/material";
+import { useQuery } from "@tanstack/react-query";
+
+import { type ItemCardData } from "../types";
+import type { StatusFilter } from "../components/ReadUnreadFilter";
+
+import { api } from "../api";
+
+import { useDeleteItem } from "../hooks/useDeleteItem";
+import { useFilteredItems } from "../hooks/useFilteredItems";
+import { useItemInteraction } from "../hooks/useItemInteraction";
+import { useItemMutations } from "../hooks/useItemMutations";
+import { usePagination } from "../hooks/usePagination";
+import { useTagFilter } from "../hooks/useTagFilter";
+
+import AddCardForm from "../components/AddCardForm";
+import ConfirmPopup from "../components/ConfirmPopup";
+import FilterPanel from "../components/FilterPanel";
 import { Header } from "../components/Header";
-import AddCardForm from "../components/AddCardForm ";
+import ItemCardDetails from "../components/ItemCardDetailed";
+import { ItemPagination } from "../components/ItemPagination";
 import ItemList from "../components/ItemList";
 import Popup from "../components/Popup";
-import ItemCardDetails from "../components/ItemCardDetailed";
-import { type ItemCardData } from "../types";
-import { useLocalStorage } from "../hooks/useLocalStorage";
-import ConfirmDeletePopup from "../components/DeleteConfirmationPopup";
-import { useFilteredItems } from "../hooks/useFilteredItems";
 import ReadUnreadFilter from "../components/ReadUnreadFilter";
-import type { StatusFilter } from "../components/ReadUnreadFilter";
-import FilterPanel from "../components/FilterPanel";
-import { Box } from "@mui/material";
+
+const ITEMS_PER_PAGE = 10;
 
 export function Library() {
-  const [items, setItems] = useLocalStorage<ItemCardData[]>("items", []);
+  const { data: items = [] } = useQuery<ItemCardData[]>({
+    queryKey: ["items"],
+    queryFn: () => api.get("/book/all").then((res) => res.data),
+  });
+
+  const { addMutation, editMutation, deleteMutation } = useItemMutations();
+  // Вызываем хук, внутри которого настройка axios-запросов и обновление списка
 
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
   const [isCardFormValid, setIsCardFormValid] = useState(true);
 
+  const [hasDuplicate, setHasDuplicate] = useState(false);
+
   const searchedItems = useFilteredItems(items, searchValue);
 
-  const finalFilteredItems = searchedItems.filter((item) => {
+  const { goToFirstPage } = usePagination([], ITEMS_PER_PAGE);
+
+  const {
+    filteredItems: itemsFilteredByTags,
+    selectedTags,
+    handleTagsChange,
+  } = useTagFilter(searchedItems, goToFirstPage);
+
+  const finalFilteredItems = itemsFilteredByTags.filter((item) => {
     if (statusFilter === "read" && !item.isRead) return false;
     if (statusFilter === "unread" && item.isRead) return false;
-    if (selectedTags.length > 0) {
-      if (!item.tags || item.tags.length === 0) return false;
-      const hasMatch = item.tags.some((tag) => selectedTags.includes(tag));
-      if (!hasMatch) return false;
-    }
     return true;
   });
 
-  const selectedItem = items.find((item) => item.id === selectedItemId) ?? null;
+  const { paginatedItems, currentPage, setCurrentPage } = usePagination(
+    finalFilteredItems,
+    ITEMS_PER_PAGE,
+  );
+
+  const {
+    selectedItem,
+    isEditing,
+    openItem,
+    closeItem,
+    handleEditAction: hookEditAction,
+  } = useItemInteraction(items);
+
+  const { deleteTargetId, openDelete, closeDelete, confirmDelete } =
+    useDeleteItem();
 
   const handleAddItem = ({
     title,
@@ -48,17 +81,29 @@ export function Library() {
     title: string;
     creator: string;
   }) => {
-    setItems((prev) => [
-      ...prev,
-      {
-        id: crypto.randomUUID(),
-        title,
-        creator,
-        tags: [],
-        isRead: false,
-        impressions: "",
-      },
-    ]);
+    const normalizedTitle = title.trim().toLowerCase();
+    const normalizedCreator = creator.trim().toLowerCase();
+
+    const isDuplicate = items.some(
+      (item) =>
+        item.title.trim().toLowerCase() === normalizedTitle &&
+        item.creator.trim().toLowerCase() === normalizedCreator,
+    );
+
+    if (isDuplicate) {
+      setHasDuplicate(true);
+      return;
+    }
+
+    setHasDuplicate(null);
+    addMutation.mutate({
+      id: crypto.randomUUID(),
+      title,
+      creator,
+      tags: null,
+      isRead: false,
+      impressions: null,
+    });
   };
 
   const handleSubmitItem = (data: ItemCardData) => {
@@ -69,62 +114,36 @@ export function Library() {
         .filter(Boolean),
     );
 
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === data.id ? { ...data, tags: normalizedTags } : item,
-      ),
-    );
-
-    setIsEditing(false);
-  };
-
-  const handleDeleteItem = (itemId: string) => {
-    setItems((prev) => prev.filter((item) => item.id !== itemId));
-    handleCloseItemPopup();
-  };
-
-  const handleOpenItemPopup = (itemId: string) => {
-    setSelectedItemId(itemId);
-    setIsEditing(false);
-  };
-
-  const handleCloseItemPopup = () => {
-    setSelectedItemId(null);
-    setIsEditing(false);
-  };
-
-  const handleOpenDeletePopup = (itemId: string) => {
-    setDeleteTargetId(itemId);
-  };
-
-  const handleCloseDeletePopup = () => {
-    setDeleteTargetId(null);
+    editMutation.mutate({ ...data, tags: normalizedTags });
+    // data - объект, который пришел из формы, с id, title, creator и старыми tags
+    // ...data разбирает объект и достает все его свойства
+    // tags: normalizedTags создает свойство tags с новым значением
+    closeItem();
   };
 
   const handleConfirmDelete = () => {
-    if (!deleteTargetId) return;
-    handleDeleteItem(deleteTargetId);
-    setDeleteTargetId(null);
+    const idToDelete = confirmDelete();
+    if (idToDelete) {
+      deleteMutation.mutate(idToDelete);
+      closeItem();
+    }
   };
 
   const handleEditAction = () => {
-    if (!isEditing) {
-      setIsEditing(true);
-      return;
-    }
-
-    if (!isCardFormValid) return;
-
-    const form = document.getElementById(
-      "collection-card-form",
-    ) as HTMLFormElement | null;
-
-    form?.requestSubmit();
+    if (isEditing && !isCardFormValid) return;
+    hookEditAction();
   };
 
   return (
     <>
-      <Header searchValue={searchValue} setSearchValue={setSearchValue} />
+      <Header
+        searchValue={searchValue}
+        setSearchValue={(val) => {
+          setSearchValue(val);
+          goToFirstPage();
+        }}
+        searchPlaceholder="Найти книгу по названию, автору или тегу"
+      />
 
       <main className="counter__container">
         <AddCardForm onAddCard={handleAddItem} />
@@ -140,24 +159,34 @@ export function Library() {
           <FilterPanel
             items={items}
             selectedTags={selectedTags}
-            onSelectedTagsChange={setSelectedTags}
+            onSelectedTagsChange={handleTagsChange}
           />
 
           <ReadUnreadFilter
             statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
+            onStatusFilterChange={(status) => {
+              setStatusFilter(status);
+              goToFirstPage();
+            }}
           />
         </Box>
 
-        <ItemList items={finalFilteredItems} onOpenCard={handleOpenItemPopup} />
+        <ItemList items={paginatedItems} onOpenCard={openItem} />
+
+        <ItemPagination
+          totalItems={finalFilteredItems.length}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          itemsPerPage={ITEMS_PER_PAGE}
+        />
 
         <Popup
           open={Boolean(selectedItem)}
-          onClose={handleCloseItemPopup}
+          onClose={closeItem}
           onEdit={handleEditAction}
           onDelete={() => {
             if (!selectedItem) return;
-            handleOpenDeletePopup(selectedItem.id);
+            openDelete(selectedItem.id);
           }}
           editButtonText={isEditing ? "Сохранить" : "Редактировать"}
           ariaLabel={isEditing ? "Редактирование книги" : "Просмотр книги"}
@@ -172,10 +201,20 @@ export function Library() {
           )}
         </Popup>
 
-        <ConfirmDeletePopup
+        <ConfirmPopup
           open={Boolean(deleteTargetId)}
-          onClose={handleCloseDeletePopup}
+          message="Это действие нельзя отменить."
+          onClose={closeDelete}
           onConfirm={handleConfirmDelete}
+          confirmButtonText="Удалить"
+          cancelButtonText="Отмена"
+        />
+
+        <ConfirmPopup
+          open={hasDuplicate}
+          message="Эта книга уже есть в вашей библиотеке."
+          onClose={() => setHasDuplicate(false)}
+          cancelButtonText="Отменить"
         />
       </main>
     </>

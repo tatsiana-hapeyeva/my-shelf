@@ -2,7 +2,7 @@ import TextField from "@mui/material/TextField";
 
 type SearchFormProps = {
   searchValue: string;
-  setSearchValue: React.Dispatch<React.SetStateAction<string>>;
+  setSearchValue: (value: string) => void;
   placeholder?: string;
 };
 

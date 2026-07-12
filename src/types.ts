@@ -2,9 +2,10 @@ export type ItemCardData = {
   id: string;
   title: string;
   creator: string;
-  tags?: string[];
+  tags?: string[] | null;
   isRead?: boolean;
-  impressions?: string;
+  impressions?: string | null;
+  format?: string;
 };
 
 export type ItemFilters = {

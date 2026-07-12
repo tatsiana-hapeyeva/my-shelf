@@ -95,7 +95,7 @@ export function Library() {
       return;
     }
 
-    setHasDuplicate(null);
+    setHasDuplicate(false);
     addMutation.mutate({
       id: crypto.randomUUID(),
       title,

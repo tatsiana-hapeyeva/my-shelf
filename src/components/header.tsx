@@ -9,7 +9,7 @@ import SearchForm from "./SearchForm";
 
 type HeaderProps = {
   searchValue?: string;
-  setSearchValue?: React.Dispatch<React.SetStateAction<string>>;
+  setSearchValue?: (value: string) => void;
   searchPlaceholder?: string;
 };
 

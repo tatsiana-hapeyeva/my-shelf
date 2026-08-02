@@ -67,7 +67,7 @@ export default function AddCardForm({
     onAddCard({
       creator: cleanCreator,
       title: cleanTitle,
-      format: data.format,
+      format: data.format || "physical",
     });
 
     reset();
@@ -142,7 +142,7 @@ export default function AddCardForm({
             Тип книги
           </MenuItem>
 
-          <MenuItem value="printed_own">Печатная (своя)</MenuItem>
+          <MenuItem value="physical">Печатная (своя)</MenuItem>
           <MenuItem value="borrowed">Заимствованная</MenuItem>
           <MenuItem value="ebook">Электронная</MenuItem>
           <MenuItem value="audio">Аудио</MenuItem>

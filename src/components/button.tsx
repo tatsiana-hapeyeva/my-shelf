@@ -14,6 +14,9 @@ export default function Button({
     <MuiButton
       variant="contained"
       sx={{
+        height: 40,
+        minHeight: 40,
+        py: 0,
         backgroundColor:
           variant === "outlined" ? "transparent" : "var(--color-accent)",
         border:

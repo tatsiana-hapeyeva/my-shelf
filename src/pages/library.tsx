@@ -11,8 +11,8 @@ import { useDeleteItem } from "../hooks/useDeleteItem";
 import { useFilteredItems } from "../hooks/useFilteredItems";
 import { useItemInteraction } from "../hooks/useItemInteraction";
 import { useItemMutations } from "../hooks/useItemMutations";
-import { usePagination } from "../hooks/usePagination";
 import { useTagFilter } from "../hooks/useTagFilter";
+import { sortItems, type SortOptions } from "../utils/sorting";
 
 import AddCardForm from "../components/AddCardForm";
 import ConfirmPopup from "../components/ConfirmPopup";
@@ -21,6 +21,7 @@ import { Header } from "../components/Header";
 import ItemCardDetails from "../components/ItemCardDetailed";
 import { ItemPagination } from "../components/ItemPagination";
 import ItemList from "../components/ItemList";
+import ItemListSorting from "../components/ItemListSorting";
 import Popup from "../components/Popup";
 import ReadUnreadFilter from "../components/ReadUnreadFilter";
 
@@ -29,22 +30,38 @@ const ITEMS_PER_PAGE = 10;
 export function Library() {
   const { data: items = [] } = useQuery<ItemCardData[]>({
     queryKey: ["items"],
-    queryFn: () => api.get("/book/all").then((res) => res.data),
+    queryFn: () =>
+      api.get("/book/all").then((res) =>
+        res.data.map(
+          (item: Omit<ItemCardData, "tags"> & { tags: string | null }) => ({
+            ...item,
+            tags: item.tags
+              ? item.tags
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean)
+              : null,
+          }),
+        ),
+      ),
   });
+
+  console.log("items[0]", items[0]);
 
   const { addMutation, editMutation, deleteMutation } = useItemMutations();
   // Вызываем хук, внутри которого настройка axios-запросов и обновление списка
 
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-
-  const [isCardFormValid, setIsCardFormValid] = useState(true);
+  const [activeSortOption, setActiveSortOption] =
+    useState<SortOptions>("newest");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [hasDuplicate, setHasDuplicate] = useState(false);
 
-  const searchedItems = useFilteredItems(items, searchValue);
+  const goToFirstPage = () => setCurrentPage(1);
 
-  const { goToFirstPage } = usePagination([], ITEMS_PER_PAGE);
+  const searchedItems = useFilteredItems(items, searchValue);
 
   const {
     filteredItems: itemsFilteredByTags,
@@ -53,14 +70,27 @@ export function Library() {
   } = useTagFilter(searchedItems, goToFirstPage);
 
   const finalFilteredItems = itemsFilteredByTags.filter((item) => {
+    const isLibraryFormat =
+      item.format === undefined ||
+      item.format === null ||
+      item.format === "" ||
+      item.format === "physical";
+
+    if (!isLibraryFormat) return false;
+
     if (statusFilter === "read" && !item.isRead) return false;
     if (statusFilter === "unread" && item.isRead) return false;
+
     return true;
   });
 
-  const { paginatedItems, currentPage, setCurrentPage } = usePagination(
-    finalFilteredItems,
-    ITEMS_PER_PAGE,
+  // 1. Сортируем массив перед тем, как отдать его в пагинацию
+  const sortedItems = sortItems(finalFilteredItems, activeSortOption);
+
+  // 2. Нарезаем отсортированный массив для пагинации
+  const paginatedItems = sortedItems.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
   );
 
   const {
@@ -69,6 +99,7 @@ export function Library() {
     openItem,
     closeItem,
     handleEditAction: hookEditAction,
+    formRef,
   } = useItemInteraction(items);
 
   const { deleteTargetId, openDelete, closeDelete, confirmDelete } =
@@ -77,9 +108,11 @@ export function Library() {
   const handleAddItem = ({
     title,
     creator,
+    format,
   }: {
     title: string;
     creator: string;
+    format?: string;
   }) => {
     const normalizedTitle = title.trim().toLowerCase();
     const normalizedCreator = creator.trim().toLowerCase();
@@ -103,21 +136,21 @@ export function Library() {
       tags: null,
       isRead: false,
       impressions: null,
+      format,
     });
   };
 
   const handleSubmitItem = (data: ItemCardData) => {
-    const normalizedTags = (data.tags ?? []).flatMap((tag) =>
-      tag
-        .split(",")
-        .map((part) => part.trim())
-        .filter(Boolean),
-    );
+    const normalizedTags = data.tags?.length
+      ? data.tags.flatMap((tag) =>
+          tag
+            .split(",")
+            .map((part) => part.trim())
+            .filter(Boolean),
+        )
+      : null;
 
     editMutation.mutate({ ...data, tags: normalizedTags });
-    // data - объект, который пришел из формы, с id, title, creator и старыми tags
-    // ...data разбирает объект и достает все его свойства
-    // tags: normalizedTags создает свойство tags с новым значением
     closeItem();
   };
 
@@ -130,18 +163,29 @@ export function Library() {
   };
 
   const handleEditAction = () => {
-    if (isEditing && !isCardFormValid) return;
     hookEditAction();
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchValue(val);
+    goToFirstPage();
+  };
+
+  const handleStatusFilterChange = (status: StatusFilter) => {
+    setStatusFilter(status);
+    goToFirstPage();
+  };
+
+  const handleSortChange = (option: SortOptions) => {
+    setActiveSortOption(option);
+    goToFirstPage();
   };
 
   return (
     <>
       <Header
         searchValue={searchValue}
-        setSearchValue={(val) => {
-          setSearchValue(val);
-          goToFirstPage();
-        }}
+        setSearchValue={handleSearchChange}
         searchPlaceholder="Найти книгу по названию, автору или тегу"
       />
 
@@ -153,7 +197,7 @@ export function Library() {
             display: "flex",
             gap: "16px",
             marginBottom: "24px",
-            alignItems: "center",
+            alignItems: "flex-start",
           }}
         >
           <FilterPanel
@@ -164,17 +208,19 @@ export function Library() {
 
           <ReadUnreadFilter
             statusFilter={statusFilter}
-            onStatusFilterChange={(status) => {
-              setStatusFilter(status);
-              goToFirstPage();
-            }}
+            onStatusFilterChange={handleStatusFilterChange}
+          />
+
+          <ItemListSorting
+            value={activeSortOption}
+            onChange={handleSortChange}
           />
         </Box>
 
         <ItemList items={paginatedItems} onOpenCard={openItem} />
 
         <ItemPagination
-          totalItems={finalFilteredItems.length}
+          totalItems={sortedItems.length}
           currentPage={currentPage}
           onPageChange={setCurrentPage}
           itemsPerPage={ITEMS_PER_PAGE}
@@ -196,7 +242,7 @@ export function Library() {
               item={selectedItem}
               isEditing={isEditing}
               onSubmit={handleSubmitItem}
-              onValidityChange={setIsCardFormValid}
+              formRef={formRef}
             />
           )}
         </Popup>

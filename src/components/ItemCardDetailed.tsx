@@ -7,6 +7,11 @@ import Typography from "@mui/material/Typography";
 import Checkbox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Chip from "@mui/material/Chip";
+import MenuItem from "@mui/material/MenuItem";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import TabletMacIcon from "@mui/icons-material/TabletMac";
+import HeadphonesIcon from "@mui/icons-material/Headphones";
 
 import { type ItemCardData } from "../types";
 
@@ -15,6 +20,7 @@ type ItemCardDetailedProps = {
   isEditing: boolean;
   onSubmit: (data: ItemCardData) => void;
   onValidityChange?: (isValid: boolean) => void;
+  formRef?: React.RefObject<HTMLFormElement | null>;
 };
 
 const textSx = {
@@ -32,11 +38,27 @@ const chipSx = {
   },
 };
 
+const hiddenLabelFieldSx = {
+  "& .MuiInputBase-input::placeholder": {
+    color: "var(--color-extra)",
+    opacity: 1,
+  },
+  "& .MuiInputLabel-root": {
+    opacity: 0,
+    pointerEvents: "none",
+  },
+};
+
+const hiddenLabelSlotProps = {
+  inputLabel: { shrink: true },
+};
+
 export default function ItemCardDetailed({
   item,
   isEditing,
   onSubmit,
   onValidityChange,
+  formRef,
 }: ItemCardDetailedProps) {
   const {
     register,
@@ -59,6 +81,13 @@ export default function ItemCardDetailed({
 
   const [tagInput, setTagInput] = useState("");
 
+  const formatIcons: Record<string, React.ElementType> = {
+    physical: MenuBookIcon,
+    borrowed: SwapHorizIcon,
+    ebook: TabletMacIcon,
+    audio: HeadphonesIcon,
+  };
+
   if (!isEditing) {
     return (
       <Box
@@ -67,9 +96,30 @@ export default function ItemCardDetailed({
           flexDirection: "column",
           gap: 2,
           minWidth: 0,
+
           overflow: "hidden",
+          position: "relative",
+          pr: 4,
         }}
       >
+        {(() => {
+          const Icon = item.format ? formatIcons[item.format] : null;
+          return Icon ? (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "flex-end",
+              }}
+            >
+              <Icon fontSize="small" sx={{ color: "var(--color-text)" }} />
+            </Box>
+          ) : null;
+        })()}
+
         <Typography sx={textSx}>{item.title}</Typography>
         <Typography sx={textSx}>{item.creator}</Typography>
 
@@ -95,13 +145,13 @@ export default function ItemCardDetailed({
   return (
     <Box
       component="form"
+      ref={formRef}
       id="collection-card-form"
       onSubmit={handleSubmit(onSubmit)}
       sx={{
         display: "flex",
         flexDirection: "column",
         gap: 2,
-
         "& .MuiInputBase-input": {
           color: "var(--color-text)",
         },
@@ -131,6 +181,8 @@ export default function ItemCardDetailed({
         placeholder="Название"
         fullWidth
         size="small"
+        sx={hiddenLabelFieldSx}
+        slotProps={hiddenLabelSlotProps}
         error={!!errors.title}
         helperText={errors.title?.message}
       />
@@ -146,8 +198,38 @@ export default function ItemCardDetailed({
         placeholder="Автор"
         fullWidth
         size="small"
+        sx={hiddenLabelFieldSx}
+        slotProps={hiddenLabelSlotProps}
         error={!!errors.creator}
         helperText={errors.creator?.message}
+      />
+
+      <Controller
+        name="format"
+        control={control}
+        rules={{ required: "Выберите тип книги" }}
+        render={({ field, fieldState }) => (
+          <TextField
+            select
+            fullWidth
+            label="Тип книги"
+            size="small"
+            value={field.value ?? ""}
+            onChange={(e) => field.onChange(e.target.value)}
+            sx={hiddenLabelFieldSx}
+            slotProps={hiddenLabelSlotProps}
+            error={!!fieldState.error}
+            helperText={fieldState.error?.message}
+          >
+            <MenuItem value="" disabled>
+              Выберите тип книги
+            </MenuItem>
+            <MenuItem value="physical">Печатная (своя)</MenuItem>
+            <MenuItem value="borrowed">Заимствованная</MenuItem>
+            <MenuItem value="ebook">Электронная</MenuItem>
+            <MenuItem value="audio">Аудио</MenuItem>
+          </TextField>
+        )}
       />
 
       <Controller
@@ -184,12 +266,14 @@ export default function ItemCardDetailed({
                 size="small"
                 variant="standard"
                 sx={{
+                  ...hiddenLabelFieldSx,
                   ml: 2,
                   "& .MuiInput-underline:after": {
                     borderBottomColor: "var(--color-accent)",
                   },
                 }}
                 slotProps={{
+                  ...hiddenLabelSlotProps,
                   htmlInput: {
                     maxLength: 30,
                     onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -223,6 +307,8 @@ export default function ItemCardDetailed({
         placeholder="Добавьте впечатления"
         multiline
         rows={4}
+        sx={hiddenLabelFieldSx}
+        slotProps={hiddenLabelSlotProps}
         error={!!errors.impressions}
         helperText={errors.impressions?.message}
       />
@@ -235,7 +321,7 @@ export default function ItemCardDetailed({
             label="Прочитана"
             control={
               <Checkbox
-                checked={field.value}
+                checked={!!field.value}
                 onChange={(e) => field.onChange(e.target.checked)}
               />
             }

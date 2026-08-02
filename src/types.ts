@@ -23,4 +23,5 @@ export type BookResponse = {
   tags: string | null;
   isRead: boolean;
   impressions: string | null;
+  format?: string;
 };

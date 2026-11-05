@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { type ItemCardData } from "../types";
 import type { StatusFilter } from "../components/ReadUnreadFilter";
 
-import { api } from "../api";
+import { fetchItems } from "../api";
 
 import { useDeleteItem } from "../hooks/useDeleteItem";
 import { useFilteredItems } from "../hooks/useFilteredItems";
@@ -30,26 +30,12 @@ const ITEMS_PER_PAGE = 10;
 export function Library() {
   const { data: items = [] } = useQuery<ItemCardData[]>({
     queryKey: ["items"],
-    queryFn: () =>
-      api.get("/book/all").then((res) =>
-        res.data.map(
-          (item: Omit<ItemCardData, "tags"> & { tags: string | null }) => ({
-            ...item,
-            tags: item.tags
-              ? item.tags
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean)
-              : null,
-          }),
-        ),
-      ),
+    queryFn: fetchItems,
   });
 
   console.log("items[0]", items[0]);
 
   const { addMutation, editMutation, deleteMutation } = useItemMutations();
-  // Вызываем хук, внутри которого настройка axios-запросов и обновление списка
 
   const [searchValue, setSearchValue] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");

@@ -4,13 +4,14 @@ import Box from "@mui/material/Box";
 
 import { type ItemCardData } from "../types";
 
-import { api } from "../api";
+import { fetchItems } from "../api";
 
 import { useFilteredItems } from "../hooks/useFilteredItems";
 import { useTagFilter } from "../hooks/useTagFilter";
 import { useItemMutations } from "../hooks/useItemMutations";
 import { useItemInteraction } from "../hooks/useItemInteraction";
 import { useDeleteItem } from "../hooks/useDeleteItem";
+import useDebounce from "../hooks/useDebounce";
 
 import { sortItems, type SortOptions } from "../utils/sorting";
 
@@ -29,26 +30,13 @@ const ITEMS_PER_PAGE = 10;
 export function Finished() {
   const { data: items = [] } = useQuery<ItemCardData[]>({
     queryKey: ["items"],
-    queryFn: () =>
-      api.get("/book/all").then((res) =>
-        res.data.map(
-          (item: Omit<ItemCardData, "tags"> & { tags: string | null }) => ({
-            ...item,
-            tags: item.tags
-              ? item.tags
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean)
-              : null,
-          }),
-        ),
-      ),
+    queryFn: fetchItems,
   });
-  // Тут будет другой запрос
 
   const { addMutation, editMutation, deleteMutation } = useItemMutations();
 
   const [searchValue, setSearchValue] = useState("");
+  const debouncedSearchValue = useDebounce(searchValue, 500);
   const [activeSortOption, setActiveSortOption] =
     useState<SortOptions>("newest");
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,7 +45,7 @@ export function Finished() {
 
   const goToFirstPage = () => setCurrentPage(1);
 
-  const searchedItems = useFilteredItems(items, searchValue);
+  const searchedItems = useFilteredItems(items, debouncedSearchValue);
 
   const {
     filteredItems: itemsFilteredByTags,

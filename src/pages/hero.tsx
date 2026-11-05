@@ -4,13 +4,13 @@ import { Header } from "../components/Header";
 import { Counter } from "../components/Counter";
 import Button from "../components/Button";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../api";
+import { fetchItems } from "../api";
 import type { ItemCardData } from "../types";
 
 export function Hero() {
   const { data: items = [] } = useQuery<ItemCardData[]>({
     queryKey: ["items"],
-    queryFn: () => api.get("/book/all").then((res) => res.data),
+    queryFn: fetchItems,
   });
 
   return (

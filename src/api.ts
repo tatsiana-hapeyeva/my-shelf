@@ -10,8 +10,16 @@ export const formatBook = (book: BookResponse): ItemCardData => {
     id: book.id || "",
     title: book.title,
     creator: book.creator,
-    tags: book.tags ? book.tags.split(",").map((tag) => tag.trim()) : [],
+    tags: book.tags
+      ? book.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+      : null,
     isRead: book.isRead,
     impressions: book.impressions || "",
   };
 };
+
+export const fetchItems = () =>
+  api.get("/book/all").then((res) => res.data.map(formatBook));
